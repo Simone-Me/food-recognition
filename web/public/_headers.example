@@ -1,0 +1,21 @@
+# Lines to MERGE into CovertCook/public/_headers (Netlify). Do not copy blindly: read TP step A12.
+
+# 1) In the existing global Content-Security-Policy, add 'wasm-unsafe-eval' to script-src:
+#    script-src 'self' 'wasm-unsafe-eval';
+#    (allows compiling WebAssembly only; it does NOT allow eval() of JavaScript strings)
+
+# 2) Cross-origin isolation ONLY on the ML pages (multi-threaded WASM needs SharedArrayBuffer).
+#    On the whole site it could break third-party resources (images, Supabase).
+/lab/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/scan
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+# 3) Models and runtime: long cache, names are versioned
+/models/*
+  Cache-Control: public, max-age=31536000, immutable
+/ort/*
+  Cache-Control: public, max-age=31536000, immutable

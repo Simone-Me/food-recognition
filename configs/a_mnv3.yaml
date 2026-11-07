@@ -1,0 +1,5 @@
+# Part A, finalist 2: MobileNetV3-Large (fastest, but SE + hard-swish: watch the int8 drop).
+base: base.yaml
+run_name: a_mnv3
+model:
+  name: mobilenetv3_large_100

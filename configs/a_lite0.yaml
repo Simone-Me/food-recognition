@@ -1,0 +1,5 @@
+# Part A, finalist 1: EfficientNet-Lite0 (int8-friendly: no SE, ReLU6).
+base: base.yaml
+run_name: a_lite0
+model:
+  name: tf_efficientnet_lite0

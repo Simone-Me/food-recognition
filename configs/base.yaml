@@ -1,0 +1,100 @@
+# configs/base.yaml — EVERYTHING that defines a run. No magic numbers in the code.
+# All values are pre-filled with the TP's suggested starting points. The [Ax] / [Dx] tag says which TP step covers it.
+# Experiment files (a_lite0.yaml, ...) inherit from this one and change only one or two keys.
+# To test a different value without editing this file: --set key=value --set run_name=<new_name>
+#   e.g. python -m src.train configs/a_lite0.yaml --set train.loss=asl --set run_name=a_lite0_asl
+# Change ONE parameter at a time, with the same seed, or the comparison says nothing.
+# Write small numbers as decimals (0.001): YAML reads 1e-3 as text, not as a number.
+#
+# Status of each value:
+#   [MEASURE]  provisional: replace it with what you measure in the TP step named next to it
+#   [ABLATION] starting recipe: try the listed alternatives and keep the winner
+#   [DECISION] your own decision: justify it in docs/decisions.md
+
+run_name: base
+seed: 42
+task: multilabel                 # multilabel (part A) | multitask (part D)
+
+paths:
+  data: data                     # relative to the repo (the repo lives OUTSIDE OneDrive, TP §A1)
+
+mlflow:
+  enabled: true
+  tracking_uri: sqlite:///mlflow.db
+  experiment: food-recognition
+
+# ---------------------------------------------------------------- D-002: targets fixed BEFORE measuring [A0]
+# [DECISION] Do not move these after seeing your results: that is a bias. Only used as pass/fail lines.
+targets:
+  latency_ms: 300                # Total median phone latency (pre + run + post). Stricter: 150-200 | looser: 500
+  size_mb: 5                     # .onnx downloaded by the PWA, AFTER int8 quantization (fp32 may exceed it). 5 MB ~ 5 M params in int8. Alternatives: 3 | 10
+  min_map: 0.40                  # Min test mAP macro of the DEPLOYED model. No published reference: my estimate, confirm it. Alternatives: 0.35 | 0.50
+  max_map_drop: 0.015            # Max mAP loss int8 vs fp32 (0.015 = 1.5 points). Alternatives: 0.01 | 0.02
+
+# ---------------------------------------------------------------- data preparation [A2] [A3] [D1]
+# Changing a value here means re-running scripts.preresize or scripts.make_splits. A new split also makes old runs non-comparable.
+prep:
+  foodseg_short_side: 512        # [A2] Short image side on disk, ~2x the largest resolution tried. 448 if you stay at 224 px
+  food101_short_side: 512        # [D1] Same idea for Food-101. 448 if part A settles on 224 px
+  val_fraction: 0.15             # [A3] Share of HF train used as val (~750 images). 0.20 = more stable thresholds, less training data
+  food101_val_fraction: 0.05     # [D1] Share of Food-101 train used as val (~3800 images). Alternative: 0.10
+  split_seed: 0
+
+data:
+  foodseg_split: data/splits/foodseg_v1.json
+  food101_split: data/splits/food101_v1.json
+  labels: data/labels/foodseg103.json
+  resolution: 256                # [A8] Input side in px. 256 won the ablation (+1.5 pt); 320 gave no more for 1.6x the pixels. Fallback 224 if the phone exceeds 300 ms
+  num_workers: 4                 # [A5] [MEASURE] Data-loading processes: smallest value past which scripts.bench_dataloader stops improving. Try 0 | 2 | 4 | 8
+  train_min_area: 0              # [A8] [ABLATION 3] Ingredient counts in TRAIN targets if its area >= tau. Alternatives: 0.005 | 0.02
+
+model:
+  name: tf_efficientnet_lite0    # Backbone; a_lite0.yaml / a_mnv3.yaml set their own. Alternative: mobilenetv3_large_100
+  pretrained: true
+  drop_rate: 0.2                 # [A8] Dropout before the head: higher fights overfitting. Alternatives: 0.1 | 0.3
+
+train:
+  epochs: 40                     # [A8] Maximum epochs; early stopping usually ends sooner. Alternatives: 30 | 50
+  batch_size: 32                 # [A8] [MEASURE] Largest that fits in 4 GB with AMP: try 32 | 48 | 64 and watch nvidia-smi
+  lr: 0.0003                     # [A7] Head learning rate, from the LR range test. Same best val mAP as 0.001 on convnext_atto, but more stable. Each finalist can override it with --set
+  backbone_lr_mult: 0.1          # [A8] Backbone LR = lr * this: pretrained weights move less than the new head. Alternatives: 0.2 | 0.3
+  weight_decay: 0.05             # [A8] AdamW regularisation: higher = stronger. Alternatives: 0.01 | 0.03
+  warmup_epochs: 1               # [A8] Epochs of linear LR ramp-up at the start. Alternative: 2
+  freeze_backbone_epochs: 0      # [A8] [ABLATION 1] 0 = fine-tune directly; >0 = train only the head first. Alternative: 3
+  early_stop_patience: 6         # [A8] Epochs without val improvement before stopping. Alternatives: 5 | 8
+  amp: true                      # fp16 autocast: saves VRAM on the 1650 Ti (no tensor cores: little speed-up)
+  grad_clip: null                # optional, e.g. 1.0
+  bias_init: true                # [A7] true = head bias starts at log(p/(1-p)) of class frequency. Try false once and compare the initial loss
+  loss: bce                      # [A8] [ABLATION 2] Baseline loss. Alternatives: bce_posw | asl
+  pos_weight_max: 20             # [A8] Cap of pos_weight; used only with loss: bce_posw. Alternatives: 10 | 30
+  asl:                           # [A8] Used only with loss: asl. Values are the paper defaults
+    gamma_neg: 4                 # Down-weights easy negatives: higher = ignores them more. For focal loss, set gamma_neg = gamma_pos
+    gamma_pos: 0                 # Down-weights easy positives: 0 = keep them all
+    clip: 0.05                   # Ignores negatives with very low probability. Use 0 for focal loss
+  augment: photo                 # [A8] Augmentation level. photo + 256 px = best run (0.4749). Alternatives: none | basic | strong
+  crop_scale_min: 0.5            # [A8] [ABLATION 4] RandomResizedCrop min area: smaller = stronger crop. Alternatives: 0.35 | 0.6
+
+eval:
+  min_area: 0                    # [A9] [DECISION] Tau of the EVALUATION targets, same for every model. 0 = all classes on the image. Once chosen, never change it
+  frequent_min_train: 50         # [A9] A class is "frequent" with >= N train images: only splits the mAP report. Alternatives: 30 | 100
+  # [D3] the "dish not recognised" threshold is chosen AFTER training: src.calibrate --unknown-dish-min-prob
+
+# ---------------------------------------------------------------- part D [D2]
+multitask:
+  dish_batch_size: 16            # [MEASURE] Food-101 images per step, on top of train.batch_size: both go through VRAM together. Try 32 if it fits in 4 GB
+  steps_per_epoch: 130           # Length of an "epoch": ~4200 FoodSeg train images / batch 32, so update it if batch_size changes. Food-101 needs more epochs to be covered
+  ingr_loss_weight: 1.0          # Total loss = w_ingr * L_ingredients + w_dish * L_dish. If one loss dominates in the logs, rebalance. 0 = dish only [D5]
+  dish_loss_weight: 1.0          # Same as above, for the dish head. Try 0.5 if loss_dish dominates
+  label_smoothing: 0.1           # CE label smoothing for the dish (Food-101 train is noisy). Alternatives: 0 | 0.05
+
+# ---------------------------------------------------------------- export & quantization [A10] [A11]
+export:
+  opset: 18                      # [A6] ONNX operator set version. 18 = native for dynamo: true (a lower value forces a conversion that can fail). Higher values: check onnxruntime-web first
+  dynamo: true                   # [A6] true = torch.export-based exporter; if it fails on a model, note the error and use false (legacy TorchScript)
+
+quant:                           # Vary with src.optimize, one parameter at a time [A11]
+  calib_size: 200                # VAL images used for calibration. Alternatives: 50 | 500
+  calib_method: MinMax           # How the activation range is chosen. Alternatives: Entropy | Percentile (exact spelling)
+  per_channel: true              # One scale per convolution filter instead of one per tensor. Alternative: false
+  calib_sampling: random         # Which images calibrate. Alternative: coverage (also includes rare ingredients)
+  nodes_to_exclude: []           # node names kept in float (mixed precision), from Netron / the debugger

@@ -1,0 +1,7 @@
+model,resolution,params_M,mult_adds_G,size_fp32_MB,size_int8_MB_est,mean,std,variant,onnx_fp32_MB,fits_size_target_fp32,fits_size_target_int8_est
+tf_efficientnet_lite0,224,3.503,0.384,14.01,3.5,"[0.5, 0.5, 0.5]","[0.5, 0.5, 0.5]",tf_efficientnet_lite0_224,0.25,True,True
+mobilenetv3_large_100,224,4.334,0.215,17.34,4.33,"[0.485, 0.456, 0.406]","[0.229, 0.224, 0.225]",mobilenetv3_large_100_224,0.35,True,True
+mobilenetv3_small_100,224,1.623,0.056,6.49,1.62,"[0.485, 0.456, 0.406]","[0.229, 0.224, 0.225]",mobilenetv3_small_100_224,0.31,True,True
+efficientnet_b0,224,4.139,0.385,16.56,4.14,"[0.485, 0.456, 0.406]","[0.229, 0.224, 0.225]",efficientnet_b0_224,0.58,True,True
+mobilevit_xs,224,1.973,0.47,7.89,1.97,"[0.0, 0.0, 0.0]","[1.0, 1.0, 1.0]",mobilevit_xs_224,1.13,True,True
+convnext_atto,224,3.408,0.551,13.63,3.41,"[0.485, 0.456, 0.406]","[0.229, 0.224, 0.225]",convnext_atto_224,0.45,True,True

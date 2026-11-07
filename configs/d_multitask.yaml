@@ -1,0 +1,6 @@
+# Part D: one shared backbone, two heads (ingredients FoodSeg103 + dish Food-101).
+base: base.yaml
+run_name: d_lite0
+task: multitask
+model:
+  name: tf_efficientnet_lite0      # [D2] [MEASURE] Provisional: replace with the backbone that wins part A. Alternative: mobilenetv3_large_100 (then rename run_name)

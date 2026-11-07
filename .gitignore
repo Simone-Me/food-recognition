@@ -1,0 +1,34 @@
+# ignore file todo tp1.md
+TP1_riconoscimento_piatti.md
+TP1_riconoscimento_piatti.v1.md
+TP1_riconoscimento_piatti.v2.md
+TP1_riconoscimento_piatti.v3.md
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data: big and regenerable (scripts.preresize) — except the small files that DEFINE the problem
+data/*
+!data/labels/
+!data/splits/
+# Personal photos: private (never in git, ask before showing them)
+data/own/
+
+# Models and runs
+models/
+*.onnx
+*.pt
+mlflow.db
+mlruns/
+mlartifacts/
+
+# Big intermediate results (regenerable with src.predict); the CSV / PNG / JSON of results/ ARE committed
+results/preds/
+results/bench_raw/*.tmp
+
+# Web fixtures can be large: regenerate with scripts.export_web_fixtures
+web/fixtures/*.json

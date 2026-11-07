@@ -1,0 +1,17 @@
+# Step A6: short and IDENTICAL budget for every candidate.
+base: base.yaml
+run_name: screening
+model:
+  name: tf_efficientnet_lite0      # overwritten for each candidate by scripts.screening
+train:
+  epochs: 6                        # [A6] Short budget, IDENTICAL for every candidate. Alternatives: 5 | 8 (8 = better estimate, slower)
+  lr: 0.001                        # the recipe used for the screening already measured: keep it comparable
+  early_stop_patience: 100         # no early stopping during screening
+screening:
+  candidates:
+    - tf_efficientnet_lite0
+    - mobilenetv3_large_100
+    - mobilenetv3_small_100
+    - efficientnet_b0
+    - mobilevit_xs
+    - convnext_atto

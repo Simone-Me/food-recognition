@@ -1,0 +1,5 @@
+# Part A, finalist 3: ConvNeXt-Atto (best val mAP of the screening, but LayerNorm + GELU: watch the int8 drop and the latency).
+base: base.yaml
+run_name: a_convnext
+model:
+  name: convnext_atto

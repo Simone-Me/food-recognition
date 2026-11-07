@@ -1,0 +1,13 @@
+foodseg,food101,expected_ingredients,note
+pizza,pizza,cheese butter;tomato;sauce,
+hamburg,hamburger,bread;lettuce;tomato,
+steak,steak,,ambiguous with filet_mignon / prime_rib
+french fries,french_fries,potato,
+ice cream,ice_cream,,
+cake,chocolate_cake,chocolate,also carrot_cake / cheesecake / red_velvet_cake...
+pie,apple_pie,apple,
+soup,miso_soup,tofu;seaweed;spring onion,
+wonton dumplings,dumplings,,
+,spaghetti_bolognese,pasta;sauce;tomato,
+,caesar_salad,lettuce;bread;cheese butter,
+,omelette,egg,

@@ -1,0 +1,22 @@
+# torch / torchvision are installed FIRST from the CUDA index (see TP §A1):
+#   pip install torch==2.15.0 torchvision==0.29.2 --index-url https://download.pytorch.org/whl/cu132
+# Then: pip install -r requirements.txt
+# Then: pip freeze > requirements.lock.txt   (exact versions of EVERYTHING, committed)
+timm==1.0.30
+onnx==1.23.2
+onnxruntime==1.31.1
+onnxscript                  # needed by torch.onnx.export(dynamo=True)
+torchinfo==1.8.0
+numpy==2.5.4
+pandas==3.1.0
+pillow==13.0.0
+PyYAML==6.0.3
+scikit-learn==1.9.1
+statsmodels==0.15.0
+matplotlib==3.11.2
+datasets
+iterative-stratification
+mlflow
+tabulate                    # pandas.to_markdown for the final table
+tqdm
+pytest
