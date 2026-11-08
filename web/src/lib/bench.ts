@@ -1,6 +1,6 @@
 // On-device benchmark of one ONNX variant. Copy to CovertCook/src/lib/bench.ts.
 import * as ort from "onnxruntime-web";
-import { cropResize, postprocess, toTensorData, type Backend, type ModelMeta } from "./foodModel";
+import { cropResize, decodePhoto, postprocess, releasePhoto, toTensorData, type Backend, type ModelMeta } from "./foodModel";
 
 ort.env.wasm.wasmPaths = "/ort/";
 
@@ -40,8 +40,9 @@ export async function bench(
   let data = new Float32Array(3 * res * res);
   if (photo) {
     const tp = performance.now();
-    const bitmap = await createImageBitmap(photo, { imageOrientation: "from-image" });
+    const bitmap = await decodePhoto(photo);
     data = toTensorData(cropResize(bitmap, res), res, meta.mean, meta.std);
+    releasePhoto(bitmap); // a decoded 12 MP photo is ~48 MB: never released, the phone ran out of memory after 1 measure
     preMs = performance.now() - tp;
   }
   const feeds = { [session.inputNames[0]]: new ort.Tensor("float32", data, [1, 3, res, res]) };

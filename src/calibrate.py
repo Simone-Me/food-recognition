@@ -22,12 +22,15 @@ def main() -> None:
     p.add_argument("--run", required=True)
     p.add_argument("--unknown-dish-min-prob", type=float, default=None,
                    help="[D3] chosen on the personal set with scripts.unknown_threshold")
+    p.add_argument("--unknown-ingr-min-prob", type=float, default=None,
+                   help="[A9] 'not recognised' when the highest ingredient probability is below this (personal set)")
     args = p.parse_args()
 
     rdir = ROOT / "models" / args.run
     cfg = load_config(rdir / "config.yaml")
     val = np.load(ROOT / "results" / "preds" / f"{args.run}__torch__val.npz")
-    out: dict = {"fitted_on": "val", "unknown_dish_min_prob": args.unknown_dish_min_prob}
+    out: dict = {"fitted_on": "val", "unknown_dish_min_prob": args.unknown_dish_min_prob,
+                 "unknown_ingr_min_prob": args.unknown_ingr_min_prob}
 
     z, y = val["ingr_logits"], val["ingr_targets"]
     t = fit_temperature(z, y, "multilabel")

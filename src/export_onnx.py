@@ -57,6 +57,7 @@ def export(run: str) -> Path:
         "thresholds": post["thresholds"],
         "dish_names": info["dish_names"],
         "unknown_dish_min_prob": post.get("unknown_dish_min_prob"),
+        "unknown_ingr_min_prob": post.get("unknown_ingr_min_prob"),   # max ingredient prob below -> "not recognised"
     }
     save_json(meta, rdir / "model_meta.json")
     return out_path

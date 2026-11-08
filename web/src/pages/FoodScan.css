@@ -1,0 +1,114 @@
+/* Scan a plate (/scan). Built on the app tokens: same paper, same red, same radius. */
+.scan__back {
+  font-size: 14px;
+  align-self: flex-start;
+}
+
+.scan__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* A <label> dressed as the app's button: the hidden file input inside it opens the camera or the gallery. */
+.scan__pick {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  color: var(--accent);
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+}
+
+.scan__pick.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* The real file input, invisible but still reachable by keyboard and screen readers: its own
+   "No file chosen" text must not show on screen. */
+.scan__pick input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  pointer-events: none;
+}
+
+.scan__pick:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.scan__photo {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.scan__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.scan__progress progress {
+  width: 100%;
+  height: 10px;
+  accent-color: var(--accent);
+}
+
+.scan__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* An ingredient: read-only in the answer, a toggle while evaluating. */
+.scan__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  color: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+button.scan__chip--toggle {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.scan__chip--toggle.is-removed {
+  border-style: dashed;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+button.scan__chip--added {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.scan__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}

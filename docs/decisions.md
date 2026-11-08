@@ -1,6 +1,6 @@
 # Journal de décisions — Reconnaissance alimentaire embarquée
 
-Dernière mise à jour : 2026-11-06. Les paramètres sont dans [configs/base.yaml](../configs/base.yaml), les mesures dans `results/`. Tout ce qui n'a pas encore été mesuré est marqué **à mesurer**.
+Dernière mise à jour : 2026-11-08. Les paramètres sont dans [configs/base.yaml](../configs/base.yaml), les mesures dans `results/`. Tout ce qui n'a pas encore été mesuré est marqué **à mesurer**.
 
 ## Retour sur le projet de recognition image alimentaires
 
@@ -16,7 +16,7 @@ Avant propos :
 **Sur le téléphone**, dans la PWA CovertCook, avec onnxruntime-web :
 
 1. L'utilisateur prend une photo. Elle ne quitte jamais le téléphone.
-2. La photo est redressée (EXIF), recadrée au centre et redimensionnée en 224 × 224 px, puis normalisée avec la moyenne et l'écart-type du backbone, lus dans `model_meta.json`.
+2. La photo est redressée (EXIF), recadrée au centre et redimensionnée en 256 × 256 px, puis normalisée avec la moyenne et l'écart-type du backbone, lus dans `model_meta.json`.
 3. Le modèle ONNX int8 calcule une probabilité par ingrédient (103 sorties). La sigmoïde et la température de calibration sont dans le graphe.
 4. Le JavaScript applique un seuil par classe et affiche les ingrédients retenus, ou « non reconnu » si aucun ne passe.
 5. **Partie D :** le même backbone a une seconde tête, qui propose les 3 plats les plus probables parmi 101.
