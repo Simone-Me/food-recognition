@@ -1,0 +1,6 @@
+{
+  "onnx": "model_fp32.onnx",
+  "n_images": 64,
+  "max_abs_diff": 1.9669532775878906e-06,
+  "decision_agreement": 1.0
+}

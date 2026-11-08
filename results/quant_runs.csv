@@ -1,0 +1,13 @@
+run,variant,method,calib_size,per_channel,sampling,excluded_nodes,size_fp32_MB,size_int8_MB,n_QuantizeLinear,n_DequantizeLinear,op_types,reduce_range
+a_convnext,model_int8_minmax_200_pc,MinMax,200,True,random,3,14.123,3.835,153,269,,
+a_mnv3,model_int8_minmax_200_pc,MinMax,200,True,random,3,17.675,5.16,142,268,,
+a_lite0,model_int8_minmax_200_pc,MinMax,200,True,random,3,14.197,4.462,59,157,,
+a_convnext,model_int8_entropy_200_pc,Entropy,200,True,random,3,14.123,3.835,153,269,,
+a_convnext,model_int8_percentile_200_pc,Percentile,200,True,random,3,14.123,3.835,153,269,,
+a_convnext,model_int8_minmax_200_pt,MinMax,200,False,random,3,14.123,3.683,153,269,,
+a_convnext,model_int8_minmax_50_pc,MinMax,50,True,random,3,14.123,3.835,153,269,,
+a_convnext,model_int8_minmax_500_pc,MinMax,500,True,random,3,14.123,3.835,153,269,,
+a_convnext,model_int8_minmax_200_pc_cov,MinMax,200,True,coverage,3,14.123,3.835,153,269,,
+a_lite0,model_int8_minmax_200_pc_rr,MinMax,200,True,random,3,14.197,4.462,59,157,all,True
+a_convnext,model_int8_minmax_200_pc_only-conv_rr,MinMax,200,True,random,3,14.123,3.803,77,157,Conv,True
+a_convnext,model_int8_minmax_200_pc_rr,MinMax,200,True,random,3,14.123,3.835,153,269,all,True

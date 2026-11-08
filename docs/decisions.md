@@ -215,6 +215,59 @@ Référence : `a_convnext_lr3e4`. Un seul changement par run. Seuil d'interprét
 - `bce_posw` et `asl` perdent nettement : la BCE simple, avec le biais initialisé, suffit.
 - Les tailles de batch 48 et 64 n'ont pas été testées : batch 32 tient en mémoire, et le changer modifierait la dynamique du LR.
 
+### Évaluation (A9) — PyTorch fp32, seuils calibrés sur val
+
+| Modèle | mAP test (2135 images) | F1 micro test | mAP photos perso (108) | F1 micro perso | Rejet des photos sans nourriture |
+|---|---|---|---|---|---|
+| `a_convnext` | 0,388 | 0,485 | 0,306 | 0,206 | 0 / 13 |
+| `a_mnv3` | 0,363 | 0,422 | 0,259 | 0,139 | 1 / 13 |
+| `a_lite0` | 0,345 | 0,404 | 0,264 | 0,156 | 0 / 13 |
+
+**Observations :**
+- Le classement est le même sur le test et sur les photos personnelles : ConvNeXt est devant.
+- **Cible D-002 non atteinte :** `convnext_atto` atteint 0,388 de mAP test en fp32, sous les 0,40 visés, avant même la quantification. La cible n'est pas déplacée.
+- **Écart val / test :** 0,475 en val contre 0,388 en test pour ConvNeXt. Une partie vient de la sélection sur val (13 runs comparées sur les mêmes 750 images), le reste n'est pas expliqué.
+- **Photos personnelles :** environ 8 points de moins que le test, ce qui mesure l'écart entre FoodSeg et des photos de téléphone. 46 des 103 classes n'y apparaissent pas, et les étiquettes sont une première version faite sur miniatures, à vérifier.
+- **Monde ouvert :** avec les seuils par classe, le modèle trouve toujours des ingrédients, même sur des photos sans nourriture. Il n'a jamais vu de non-nourriture à l'entraînement, et la précision est faible (0,17 sur les photos perso).
+- **Piste :** une règle « non reconnu » sur la probabilité maximale. Pour ConvNeXt, un seuil de 0,4 garde 85 % des photos de nourriture et rejette 10 photos sans nourriture sur 13. Le seuil est choisi et mesuré sur les mêmes 13 photos : estimation optimiste, à confirmer sur d'autres photos.
+- **Intervalles de confiance :** la valeur mesurée tombe en bas de l'intervalle bootstrap (test ConvNeXt : 0,388 dans [0,384 ; 0,424]), voire en dehors (Lite0 perso). Le bootstrap sur les images fait disparaître les classes rares de certains tirages, et ces classes ont une AP plus faible : l'intervalle est décalé vers le haut. À corriger avant de citer ces intervalles.
+
+### Export ONNX (A10) — fp32, opset 18, dynamo
+
+| Modèle | Taille `.onnx` | Écart max PyTorch / ONNX (64 images) | Décisions identiques | mAP test ONNX | Écart de mAP |
+|---|---|---|---|---|---|
+| `a_convnext` | 14,1 Mo | 4,2e-6 | 100 % | 0,3876 | 0,0000 |
+| `a_mnv3` | 17,7 Mo | 2,0e-6 | 100 % | 0,3634 | 0,0000 |
+| `a_lite0` | 14,2 Mo | 2,1e-6 | 100 % | 0,3453 | 0,0000 |
+
+**Observation :** l'export ne change rien, ni aux probabilités (écarts de l'ordre de 1e-6, du bruit de calcul en float32) ni à la mAP. Toute perte mesurée en A11 viendra donc de la quantification. En fp32, les trois fichiers dépassent la cible de 5 Mo, comme prévu.
+
+### Quantification int8 (A11) — premier essai, invalide
+
+Premier essai, MinMax, 200 images, par canal : perte de mAP test de 13,2 points pour ConvNeXt, 9,9 pour MNV3 et 5,4 pour Lite0, contre 1,5 au maximum visé. Aucune option de calibration ne ramène la perte sous 8 points.
+
+- **Cause :** la sortie sigmoïde était elle aussi quantifiée en uint8, soit 256 probabilités possibles (pas de 0,004). La probabilité médiane d'un ingrédient est 0,003 : environ 40 % des probabilités tombaient à 0, et il ne restait que 71 à 91 valeurs distinctes sur 220 000. L'AP mesure un classement, qui est détruit par ces égalités. Le problème touche donc tous les modèles, même Lite0, conçu pour l'int8.
+- **Correction :** la tête (couche linéaire, division par la température, sigmoïde) reste en float. Le coût est une petite matrice en float, quelques centaines de Ko.
+- **Second défaut :** le nom du fichier ne contenait pas l'échantillonnage, donc la variante `coverage` avait écrasé la variante de référence `random`. Le suffixe `_cov` est maintenant ajouté.
+- **Méthode :** la variante int8 est désormais choisie sur val, et seule la variante retenue est mesurée sur test.
+
+### Quantification int8 (A11) — après correction
+
+Même avec la tête en float, la perte restait de 6 à 19 points sur val. Deux autres causes ont été trouvées.
+
+- **Noyaux int8 du PC :** sur un processeur x86 sans instructions VNNI (Ryzen 7 4800HS, Zen 2), les noyaux uint8 × int8 d'onnxruntime saturent. Sur 300 images de val, Lite0 int8 donne 0,391 avec les noyaux optimisés et 0,447 en exécution simulée (mêmes calculs sans ces noyaux). Avec `reduce_range` (poids sur 7 bits), les deux exécutions donnent le même résultat. Le téléphone utilise d'autres noyaux : le comportement y reste à vérifier.
+- **ConvNeXt :** LayerNorm et GELU supportent mal l'int8. Quantifier seulement les convolutions (`--op-types Conv`) ramène la perte de 9,1 à 3,6 points sur 300 images de val.
+- **Anomalie non expliquée :** les fichiers `Entropy` et `MinMax` de ConvNeXt sont identiques octet par octet. La méthode de calibration n'a donc pas été prise en compte, à vérifier.
+
+| Variante retenue | Taille | mAP val fp32 → int8 | Perte val | mAP test fp32 → int8 | Perte test (IC 95 %) |
+|---|---|---|---|---|---|
+| `a_convnext`, MinMax 200, par canal, convolutions seules, `reduce_range` | 3,80 Mo | 0,471 → 0,426 | 4,5 points | 0,388 → 0,367 | 2,1 points [1,0 ; 3,1] |
+| `a_lite0`, MinMax 200, par canal, `reduce_range` | 4,46 Mo | 0,400 → 0,388 | 1,2 points | 0,345 → 0,345 | 0,0 point [-0,7 ; 0,7] |
+
+- **Lite0** respecte la perte maximale de 1,5 point ; **ConvNeXt** la dépasse, mais reste plus précis en valeur absolue.
+- **MNV3** est écarté : 5,16 Mo, au-dessus de la cible, et 12 points de perte avant correction.
+- **Premier déploiement :** ConvNeXt, sur la page `/scan` d'un déploiement de brouillon. Le choix final (A13) attend la latence mesurée sur le téléphone.
+
 ### À compléter
 
 - [ ] Compteurs `integrity checks` de `preresize` (A2)
@@ -225,8 +278,8 @@ Référence : `a_convnext_lr3e4`. Un seul changement par run. Seuil d'interprét
 - [ ] Résultats `overfit` et LR par finaliste (A7)
 - [ ] Tableau d'ablation (A8)
 - [ ] mAP + IC, F1, ECE, classes fréquentes et rares, photos personnelles (A9)
-- [ ] Parité PyTorch / ONNX (A10)
-- [ ] Taille réelle et perte int8 de chaque variante (A11)
+- [x] Parité PyTorch / ONNX (A10)
+- [x] Taille réelle et perte int8 de chaque variante (A11)
 - [ ] Latence par variante, backend et threads, avec le modèle du téléphone (A12)
 - [ ] Décision finale de déploiement (A13)
 - [ ] Top-1 et top-3 du plat, seuil « non reconnu », coût du multi-tâche (D3-D5)

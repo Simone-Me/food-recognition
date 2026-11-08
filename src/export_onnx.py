@@ -41,6 +41,7 @@ def export(run: str) -> Path:
     # Re-save as ONE self-contained file (some exporters write weights as external data).
     m = onnx.load(str(out_path))
     onnx.save_model(m, str(out_path), save_as_external_data=False)
+    out_path.with_name(out_path.name + ".data").unlink(missing_ok=True)   # leftover copy of the weights, now unused
     onnx.checker.check_model(str(out_path))
     print(f"exported {out_path} ({file_mb(out_path):.2f} MB, opset {opset}, dynamo={dynamo})")
 
