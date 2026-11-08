@@ -134,7 +134,7 @@ export default function FoodScan() {
       <h1>
         {t('scan.title')} <WipChip />
       </h1>
-      <p className="muted">{t('scan.lead')}</p>
+      <p className="muted">{t('scan.lead')} <Link to="/scan/model">{t('scan.howItWorks')}</Link></p>
 
       <div className="scan__actions">
         {/* Two inputs, not one: `capture` opens the camera directly, without it the phone offers the gallery. */}

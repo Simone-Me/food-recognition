@@ -1,0 +1,236 @@
+/* "How the model works" (/scan/model). Charts on the app's paper: recessive grid, text in text tokens. */
+.mr h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.mr-steps {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+}
+
+.mr-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.mr-tiles > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+.mr-tiles strong {
+  font-size: 22px;
+}
+
+.mr-chart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mr-chart__title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.mr-chart__plot {
+  position: relative;
+}
+
+.mr-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: pan-y;
+}
+
+.mr-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+
+.mr-ref {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.mr-gap {
+  stroke: var(--border);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+.mr-leader {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+.mr-crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+}
+
+/* The 2px surface ring that keeps a dot legible where it crosses a line. */
+.mr-ring {
+  stroke: var(--bg-elevated);
+  stroke-width: 2;
+}
+
+.mr-tick,
+.mr-axis {
+  fill: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.mr-label {
+  fill: var(--text);
+  font-size: 13px;
+}
+
+.mr-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13px;
+}
+
+.mr-legend__item {
+  display: inline-flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.mr-tip {
+  position: absolute;
+  top: calc(100% + 4px); /* under the plot: the lines stay visible while the finger is on them */
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  font-size: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.mr-tip i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+}
+
+.mr-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mr-switch button {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+
+.mr-table {
+  overflow-x: auto;
+}
+
+.mr-table table {
+  border-collapse: collapse;
+  font-size: 13px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.mr-table th,
+.mr-table td {
+  padding: 4px 10px 4px 0;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.mr-fixes {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.mr-h3 {
+  margin: 8px 0 0;
+  font-size: 15px;
+}
+
+.mr-glossary {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.mr-glossary dt {
+  font-weight: 700;
+}
+
+.mr-glossary dd {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+}
+
+/* Collapsible sections: a triangle that turns when the section is open. */
+.mr-sec > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mr-sec > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mr-sec > summary::before {
+  content: '▶';
+  color: var(--accent);
+  font-size: 13px;
+  transition: transform 0.15s;
+}
+
+.mr-sec[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.mr-sec[open] > summary {
+  margin-bottom: 12px;
+}
+
+/* Glossary: the term in bold, its definition running on after it like a sentence. */
+.mr-glossary dt,
+.mr-glossary dd {
+  display: inline;
+  margin: 0;
+}
+
+.mr-glossary dt::after {
+  content: ' — ';
+  font-weight: 400;
+}
