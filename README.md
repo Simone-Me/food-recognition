@@ -1,8 +1,13 @@
 # food-recognition
 
 Ingredient recognition (FoodSeg103, multi-label, 103 classes), quantized to int8 and run **on the phone** in the
-CovertCook PWA with onnxruntime-web: [covertcook.fr/scan](https://covertcook.fr/scan) (Profile → "Calculate your
-consumption"). The photo never leaves the phone. Part D (dish + ingredients, Food-101) is not done yet.
+CovertCook PWA with onnxruntime-web: [covertcook.fr/scan](https://covertcook.fr/scan) (Profile → "Analyse your
+plate"). The photo never leaves the phone. The page [covertcook.fr/scan/model](https://covertcook.fr/scan/model)
+("How does the model work?") shows the curves, the int8 variants and the phone latency, from a `model_report.json`
+written by `scripts.export_model_report`. A signed-in user can press "Evaluate" to remove the wrong ingredients and add
+the missing ones: only the ingredient ids are sent (no photo) to the Supabase table `scan_feedback` (CovertCook
+migration 0111), with the model version, precision and recall, to measure the model in real use. Part D (dish +
+ingredients, Food-101) is not done yet.
 
 ## Results
 

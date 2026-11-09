@@ -18,7 +18,7 @@ Support de présentation, partie 1 sur 2. La partie 2, sur l'optimisation et le 
 
 **Cible :** un smartphone, dans le navigateur. Le modèle tourne dans la PWA CovertCook avec onnxruntime-web : la photo ne quitte jamais le téléphone.
 
-**Pourquoi ce sujet :** CovertCook est une application existante qui organise des dîners avec échange de recettes. Reconnaître les ingrédients d'un plat photographié est la première brique de « Calculez votre consommation » (calories, nutriments, à venir).
+**Pourquoi ce sujet :** CovertCook est une application existante qui organise des dîners avec échange de recettes. Reconnaître les ingrédients d'un plat photographié est la première brique d'« Analyser votre assiette » (sur `/scan` ; calories et nutriments à venir).
 
 ---
 

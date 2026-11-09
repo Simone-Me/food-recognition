@@ -128,8 +128,11 @@ Préparation de la photo (décodage, redressement, recadrage, 256 px) : **350 à
 | Élément | Rôle |
 |---|---|
 | `src/lib/foodModel.ts` | Charge le modèle (avec avancement du téléchargement), prépare la photo exactement comme Python, applique seuils et « non reconnu » |
-| `src/pages/FoodScan.tsx` (`/scan`) | Prendre une photo ou choisir dans la galerie, barre d'avancement, ingrédients en puces supprimables |
-| Profil → « Calculez votre consommation » | Ouvre `/scan` (marqué « en développement ») |
+| `src/pages/FoodScan.tsx` (`/scan`) | Prendre une photo ou choisir dans la galerie, barre d'avancement, ingrédients affichés en lecture seule ; le bouton « Évaluer » permet de retirer les ingrédients faux et d'ajouter ceux qui manquent |
+| Profil → « Analyser votre assiette » | Ouvre `/scan` (marqué « en développement ») |
+| `src/pages/ModelReport.tsx` (`/scan/model`) | Page « Comment fonctionne le modèle ? » : courbes d'entraînement, variantes int8, fp32 contre int8, latence sur téléphone, en sections repliables |
+| `public/models/model_report.json` | Les données de `/scan/model`, écrites par `scripts/export_model_report.py` à partir des résultats versionnés (rien n'est recalculé) |
+| Supabase : table `scan_feedback`, fonction `submit_scan_feedback()` (migration 0111) | Reçoit une évaluation : version du modèle, ingrédients proposés avec leurs probabilités, retirés, ajoutés. **Aucune photo.** Précision, rappel et Jaccard calculés côté serveur ; utilisateurs connectés seulement, 30 envois par heure au maximum ; aucun accès direct à la table |
 | `src/pages/LabBench.tsx` (`/lab/bench`) | Page cachée de mesure de latence, pour le TP |
 | `public/models/` | Le modèle de `/scan` et son `meta.json`, versionnés |
 | `scripts/copy-ort.mjs` | Copie le runtime onnxruntime-web (WebAssembly) dans `public/ort/` à chaque build |
@@ -140,7 +143,7 @@ Préparation de la photo (décodage, redressement, recadrage, 256 px) : **350 à
 - **Test de parité Python / JavaScript (Vitest, 6 tests) :** même tenseur d'entrée et mêmes ingrédients que Python sur 3 images.
 - **Chrome headless piloté par script :** `/scan` testé sur 2 photos de plats et 2 sans nourriture, résultats proches de Python (une photo proche du seuil 0,4 change de côté : le redimensionnement d'une photo de 4 000 px dans le navigateur n'est pas identique à celui de Python) ; `/lab/bench` testé avec 1 et 4 threads.
 - **WebKit (moteur de Safari, profil iPhone 15) piloté par Playwright :** `/scan` testé sur 4 photos, dont des JPEG progressifs de WhatsApp ; résultats cohérents avec Python après le repli de décodage.
-- **Processus :** une branche par changement, un **déploiement de brouillon Netlify** (URL HTTPS propre, en-têtes réels) testé sur le téléphone, puis merge sur `main` pour la production.
+- **Processus :** une branche par changement, un **déploiement de brouillon Netlify** (URL HTTPS propre, en-têtes réels) testé sur le téléphone, puis la migration Supabase appliquée (`npx supabase db push --linked`) **avant** le merge sur `main`, qui publie en production.
 
 ---
 
